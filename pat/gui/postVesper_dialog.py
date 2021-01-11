@@ -93,7 +93,7 @@ class PostVesperDialog(QDialog, FORM_CLASS):
         self.vesper_qgscrs = None
         self.vesp_dict = None
         self.dfCSV = None
-        self.chkRunVesper.hide()
+        #self.chkRunVesper.hide()
 
     def cleanMessageBars(self, AllBars=True):
         """Clean Messages from the validation layout.

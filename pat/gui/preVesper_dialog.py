@@ -207,7 +207,7 @@ class PreVesperDialog(QDialog, FORM_CLASS):
                 ctrl_name = re.sub(fld, '', ctrl_name, flags=re.I)
 
                 # and again with the field truncated to 10 chars
-                fld = fld[:10]
+                #fld = fld[:10]
                 ctrl_name = re.sub(fld, '', ctrl_name, flags=re.I)
 
             if self.cboMethod.currentText() == 'High Density Kriging':
@@ -216,7 +216,7 @@ class PreVesperDialog(QDialog, FORM_CLASS):
                 krig_type = 'LowDensity'
 
             # add the chosen field name to the control filename
-            ctrl_name = '{}_{}_{}_control'.format(ctrl_name[:20], krig_type, fld)
+            ctrl_name = '{}_{}_{}_control'.format(ctrl_name, krig_type, fld)
 
             # only allow alpha-numeric Underscores and hyphens
             ctrl_name = re.sub('[^A-Za-z0-9_-]+', '', ctrl_name)
@@ -413,7 +413,8 @@ class PreVesperDialog(QDialog, FORM_CLASS):
                 PLUGIN_NAME + "/" + self.toolKey + "/LastOutFolder")
             if outFolder is None or not os.path.exists(outFolder):
                 outFolder = read_setting(PLUGIN_NAME + '/BASE_OUT_FOLDER')
-
+        
+        outFolder = read_setting(PLUGIN_NAME + "/" + self.toolKey + "/LastInFolder_CSV")
         s = QFileDialog.getExistingDirectory(self, self.tr(
             "Vesper processing folder. A Vesper sub-folder will be created."), outFolder,
                                              QFileDialog.ShowDirsOnly)
@@ -518,8 +519,7 @@ class PreVesperDialog(QDialog, FORM_CLASS):
                 return False, 'Grid file does not exist'
             else:
                 try:
-                    df_grid = pd.read_table(grid_file, names=['X', 'Y'],
-                                            delimiter=' ', skipinitialspace=True)
+                    df_grid = pd.read_table(grid_file, names=['X', 'Y'], delim_whitespace=True, skipinitialspace=True)
 
                     grid_bbox = box(df_grid['X'].min(), df_grid['Y'].min(),
                                     df_grid['X'].max(), df_grid['Y'].max())
@@ -708,6 +708,7 @@ class PreVesperDialog(QDialog, FORM_CLASS):
             settingsStr += '\n    {:30}\t{}'.format('Krige Column:', self.cboKrigColumn.currentText())
             settingsStr += '\n    {:30}\t{}'.format('Grid File:', self.lneInGridFile.text())
             settingsStr += '\n    {:30}\t{}'.format('Output Vesper Folder:', self.lneVesperFold.text())
+            settingsStr += '\n    {:30}\t{}'.format('Control File:', self.lneCtrlFile.text())
 
             settingsStr += '\n    {:30}\t{}'.format('Mode:',self.cboMethod.currentText())
 

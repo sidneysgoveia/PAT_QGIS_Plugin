@@ -75,11 +75,11 @@ from .gui.stripTrialPoints_dialog import StripTrialPointsDialog
 from .gui.tTestAnalysis_dialog import tTestAnalysisDialog
 
 from .util.check_dependencies import check_vesper_dependency, check_R_dependency
-from .util.custom_logging import stop_logging
+from .util.custom_logging import stop_logging, set_log_file
 from .util.qgis_common import addRasterFileToQGIS, removeFileFromQGIS
 from .util.settings import read_setting, write_setting
 from .util.processing_alg_logging import ProcessingAlgMessages
-from .util.qgis_symbology import ( RASTER_SYMBOLOGY, raster_apply_classified_renderer)
+from .util.qgis_symbology import (RASTER_SYMBOLOGY, raster_apply_classified_renderer)
 
 import pyprecag
 from pyprecag import config
@@ -145,15 +145,29 @@ class pat_toolbar(object):
                     os.mkdir(sFolder)
 
                 write_setting(PLUGIN_NAME + '/' + eaKey, os.path.join(os.path.expanduser('~'), PLUGIN_NAME))
-
+    
+        
         self.DEBUG = config.get_debug_mode()
+
         self.vesper_queue = []
         self.vesper_queue_showing = False
         self.processVesper = None
         self.vesper_exe = check_vesper_dependency(iface)
-
+        
+        # change log on project save
+        QgsProject.instance().projectSaved.connect(self.change_log)
+        
+        # change log on project open
+        QgsProject.instance().readProject.connect(self.change_log)
+ 
         if not os.path.exists(TEMPDIR):
             os.mkdir(TEMPDIR)
+
+
+    def change_log(self):
+           
+        log_file = set_log_file()        
+
 
     def tr(self, message):
         """Get the translation for a string using Qt translation API.
@@ -430,6 +444,7 @@ class pat_toolbar(object):
                                                 QMessageBox.Ok)
         
         stop_logging('pyprecag')
+        #QgsProject.instance().projectSaved.disconnect(self.change_log)
         
 #         layermap = QgsProject.instance().mapLayers()
 #         RemoveLayers = []
@@ -449,7 +464,6 @@ class pat_toolbar(object):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             mess = str(traceback.format_exc())
             print(mess)
-
        
         self.menuPrecAg.clear()
         for action in self.actions:
@@ -457,11 +471,11 @@ class pat_toolbar(object):
             self.iface.removeToolBarIcon(action)
         
         # # remove the toolbar
-        #del self.toolbar
+        # del self.toolbar
         self.menuPrecAg.deleteLater()
         self.toolbar.deleteLater()
 
-        #self.clear_modules()
+        # self.clear_modules()
 
     def queueAddTo(self, vesp_dict):
         """ Add a control file to the VESPER queue"""
@@ -470,7 +484,7 @@ class pat_toolbar(object):
                 , None) is not None:
 
             self.iface.messageBar().pushMessage('Control file is already in the VESPER queue. {}'.format(
-                vesp_dict['control_file']),level=Qgis.Warning, duration=15)
+                vesp_dict['control_file']), level=Qgis.Warning, duration=15)
 
             self.queueDisplay()
 
@@ -774,9 +788,9 @@ class pat_toolbar(object):
             output_folder = dlg_tTestAnalysis.lneOutputFolder.text()
             import webbrowser
             try:
-                from urllib.request import pathname2url         # Python 2.x
+                from urllib.request import pathname2url  # Python 2.x
             except:
-                from urllib.request import pathname2url # Python 3.x
+                from urllib.request import pathname2url  # Python 3.x
 
             def open_folder():
                 url = 'file:{}'.format(pathname2url(os.path.abspath(output_folder)))
@@ -880,7 +894,7 @@ class pat_toolbar(object):
                 webbrowser.open(url)
 
             message = 'Raster statistics for points extracted successfully !'
-            #add a button to open the file outside qgis
+            # add a button to open the file outside qgis
             widget = self.iface.messageBar().createMessage('', message)
             button = QPushButton(widget)
             button.setText('Open File')
@@ -1079,7 +1093,7 @@ class pat_toolbar(object):
 
     def run_settings(self):
         """Run method for the about dialog"""
-        dlgSettings = SettingsDialog()
+        dlgSettings = SettingsDialog(self.iface)
         if dlgSettings.exec_():
             self.vesper_exe = dlgSettings.vesper_exe
             self.DEBUG = config.get_debug_mode()

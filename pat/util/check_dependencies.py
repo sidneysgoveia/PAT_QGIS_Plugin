@@ -77,7 +77,7 @@ def check_pat_symbols():
 
     styles = QgsStyle().defaultStyle()
 
-    if 'PAT' not in styles.tags() or ( loaded_date is None or xml_date > loaded_date ):
+    if 'PAT' not in styles.tags() or (loaded_date is None or xml_date > loaded_date):
         if styles.isXmlStyleFile(pat_xml):
             if styles.importXml(pat_xml):
                 LOGGER.info('Loaded PAT Symbology')
@@ -335,7 +335,7 @@ def check_python_dependencies(plugin_path, iface):
         osgeo_packs = []
 
         # Check for the listed modules.
-        for argCheck in ['fiona','geopandas', 'rasterio']:
+        for argCheck in ['fiona', 'geopandas', 'rasterio']:
             packCheck[argCheck] = check_package(argCheck)
             if packCheck[argCheck]['Action'] == 'Install':
                 osgeo_packs += [argCheck]
@@ -385,8 +385,8 @@ def check_python_dependencies(plugin_path, iface):
 
         # 'osgeo_uninst': ' -x python3-'.join(['fiona', 'geopandas', 'rasterio'])
         temp_file = os.path.join(plugin_path, 'util', 'Install_PAT3_Extras.template')
-        install_file = os.path.join(plugin_path, 'install_files', '{}_4_qgis{}.bat'.format(title,str(Qgis.QGIS_VERSION_INT)[:-2]))
-        uninstall_file = os.path.join(plugin_path, 'install_files', 'Un{}_4_qgis{}.bat'.format(title,str(Qgis.QGIS_VERSION_INT)[:-2]))
+        install_file = os.path.join(plugin_path, 'install_files', '{}_4_qgis{}.bat'.format(title, str(Qgis.QGIS_VERSION_INT)[:-2]))
+        uninstall_file = os.path.join(plugin_path, 'install_files', 'Un{}_4_qgis{}.bat'.format(title, str(Qgis.QGIS_VERSION_INT)[:-2]))
         python_version = struct.calcsize("P") * 8  # this will return 64 or 32
 
         if not os.path.exists(os.path.dirname(install_file)):
@@ -476,6 +476,7 @@ def check_python_dependencies(plugin_path, iface):
 
     return failDependencyCheck
 
+
 def get_logger_file():
     for hand in LOGGER.handlers:
         try:
@@ -512,7 +513,8 @@ def create_link(link_path, target_path, description=None, directory=None,
     file_link.Save(link_path, 0)
     LOGGER.info('Created shortcut {}'.format(link_path))
 
-def get_plugin_state():
+
+def get_plugin_state(level='full'):
     from qgis.utils import pluginMetadata
 
     """TODO: Make the paths clickable links to open folder
@@ -526,27 +528,34 @@ def get_plugin_state():
     plug_state += '    {:20}\t{}\n'.format('QGIS :', Qgis.QGIS_VERSION)
     qgis_prefix = qgis.core.QgsApplication.prefixPath()
 
-    if platform.system() == 'Windows':
-        qgis_prefix = os.path.abspath(win32api.GetLongPathName(qgis_prefix))
+    if level == 'full':
+        if platform.system() == 'Windows':
+            qgis_prefix = os.path.abspath(win32api.GetLongPathName(qgis_prefix))
+         
+        plug_state += '    {:20}\t{}\n'.format('Install Path : ', qgis_prefix)
 
-    plug_state += '    {:20}\t{}\n'.format('Install Path : ', qgis_prefix)
-
-    plug_state += '    {:20}\t{}\n'.format('Plugin Dir :', os.path.normpath(PLUGIN_DIR))
-    plug_state += '    {:20}\t{}\n'.format('Temp Folder :', os.path.normpath(tempfile.gettempdir()))
+        plug_state += '    {:20}\t{}\n'.format('Plugin Dir :', os.path.normpath(PLUGIN_DIR))
+        plug_state += '    {:20}\t{}\n'.format('Temp Folder :', os.path.normpath(tempfile.gettempdir()))
 
     plug_state += '    {:20}\t{}\n'.format('Python :', sys.version)
     plug_state += '    {:20}\t{}\n'.format('GDAL :', os.environ.get('GDAL_VERSION', None))
-
-    plug_state += '\nPAT Version :\n'
+    
+    if level == 'full':
+        plug_state += '\nPAT Version :\n'
+    
     plug_state += '    {:20}\t{} {}\n'.format('PAT :', pluginMetadata('pat', 'version'),
                                                     pluginMetadata('pat', 'update_date'))
-    plug_state += '    {:20}\t{}\n'.format('pyPrecAg :', get_distribution('pyprecag').version)
-    plug_state += '    {:20}\t{}\n'.format('Geopandas :', get_distribution('geopandas').version)
-    plug_state += '    {:20}\t{}\n'.format('Rasterio :', get_distribution('rasterio').version)
-    plug_state += '    {:20}\t{}\n'.format('Fiona :', get_distribution('fiona').version)
-    plug_state += '    {:20}\t{}\n'.format('Pandas :', get_distribution('pandas').version)
+    
+    plug_state += '    {:20}\t{}\n'.format('Log File :', read_setting(PLUGIN_NAME + '/LOG_FILE'))
 
-    plug_state += '\nR Configuration :\n'
-    plug_state += '    {:20}\t{}\n'.format('R Active :', read_setting('Processing/Configuration/ACTIVATE_R'))
-    plug_state += '    {:20}\t{}\n'.format('R Install Folder :', read_setting('Processing/Configuration/R_FOLDER'))
+    if level == 'full':
+        plug_state += '    {:20}\t{}\n'.format('pyPrecAg :', get_distribution('pyprecag').version)
+        plug_state += '    {:20}\t{}\n'.format('Geopandas :', get_distribution('geopandas').version)
+        plug_state += '    {:20}\t{}\n'.format('Rasterio :', get_distribution('rasterio').version)
+        plug_state += '    {:20}\t{}\n'.format('Fiona :', get_distribution('fiona').version)
+        plug_state += '    {:20}\t{}\n'.format('Pandas :', get_distribution('pandas').version)
+    
+        plug_state += '\nR Configuration :\n'
+        plug_state += '    {:20}\t{}\n'.format('R Active :', read_setting('Processing/Configuration/ACTIVATE_R'))
+        plug_state += '    {:20}\t{}\n'.format('R Install Folder :', read_setting('Processing/Configuration/R_FOLDER'))
     return plug_state

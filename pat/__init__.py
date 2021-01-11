@@ -83,6 +83,10 @@ def classFactory(iface):
     if read_setting(PLUGIN_NAME + "/DEBUG") is None:
         write_setting(PLUGIN_NAME + "/DEBUG", False)
 
+    if read_setting(PLUGIN_NAME + '/PROJECT_LOG', bool) is None:
+        write_setting(PLUGIN_NAME + '/PROJECT_LOG',False)
+        write_setting(PLUGIN_NAME + '/LOG_FILE',os.path.normpath(os.path.join(TEMPDIR,'PAT.log')))
+
     try:
         from pyprecag import config
         config.set_debug_mode(read_setting(PLUGIN_NAME + "/DEBUG",bool))
@@ -91,22 +95,30 @@ def classFactory(iface):
         pass
 
     # the custom logging import requires qgis_config so leave it here
-    from .util.custom_logging import setup_logger
+    from .util.custom_logging import set_log_file, setup_logger
 
     # Call the logger pyprecag so it picks up the module debugging as well.
-    setup_logger(LOGGER_NAME)
+    log_file = set_log_file()
+    
+    # make sure the logger file is actually set 
+    setup_logger(LOGGER_NAME, log_file)
+
     LOGGER = logging.getLogger(LOGGER_NAME)
     LOGGER.addHandler(logging.NullHandler())   # logging.StreamHandler()
 
     from .util.check_dependencies import (check_pat_symbols, check_R_dependency,check_gdal_dependency,
-                                          check_python_dependencies)
+                                          check_python_dependencies,get_plugin_state)
 
     meta_version = pluginMetadata('pat','version')
-    plugin_state = '\nPAT Plugin:\n'
-    plugin_state += '    {:25}\t{}\n'.format('QGIS Version:', Qgis.QGIS_VERSION)
-    plugin_state += '    {:25}\t{}\n'.format('Python Version:',  sys.version)
-    plugin_state += '    {:25}\t{} {}'.format('PAT:', pluginMetadata('pat', 'version'),
-                                                      pluginMetadata('pat', 'update_date'))
+    plugin_state = get_plugin_state('basic')
+    
+#     plugin_state = '\nPAT Plugin:\n'  
+#     plugin_state += '    {:25}\t{}\n'.format('QGIS Version:', Qgis.QGIS_VERSION)
+#     plugin_state += '    {:25}\t{}\n'.format('Python Version:',  sys.version)
+#     plugin_state += '    {:25}\t{} {}\n'.format('PAT:', pluginMetadata('pat', 'version'),
+#                                                       pluginMetadata('pat', 'update_date'))
+#     plugin_state += '    {:25}\t{}'.format('Log:',  log_file)
+
     LOGGER.info(plugin_state)
 
 

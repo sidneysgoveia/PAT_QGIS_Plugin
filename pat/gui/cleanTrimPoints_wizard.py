@@ -451,7 +451,9 @@ class CleanTrimPointsDialog(QDialog, FORM_CLASS):
         lastFolder = read_setting(PLUGIN_NAME + "/" + self.toolKey + "/LastOutFolder")
         if lastFolder is None or not os.path.exists(lastFolder):
             lastFolder = read_setting(PLUGIN_NAME + '/BASE_OUT_FOLDER')
-
+        
+        lastFolder = read_setting(PLUGIN_NAME + "/" + self.toolKey + "/LastInFolder")
+        
         # start building a filename
         if self.optLayer.isChecked():
             lyrTarget = self.mcboTargetLayer.currentLayer()
